@@ -29,7 +29,7 @@ module.exports = {
       repo : 'git@github.com:r35krag0th/exraidbot.git',
       path : '/home/ubuntu/workspace/bots/exraidbot',
       'pre-setup': 'pip install pipenv',
-      'post-deploy' : 'pipenv install && cp -p /home/ubuntu/.config/exraidbot/exraid.json config/exraid.json && pm2 reload ecosystem.config.js --env production'
+      'post-deploy' : 'pipenv install && cp -p /home/ubuntu/.config/bots/exraidbot/exraid.json config/exraid.json && pm2 reload ecosystem.config.js --env production'
     }
   }
 };
