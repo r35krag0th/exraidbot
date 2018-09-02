@@ -51,7 +51,7 @@ class pokeocr:
     else:
       self.lang = self.tool.get_available_languages()[0]
 
-    self.dateTimeRE = re.compile('^([A-Z][a-z]+) ?([0-9]{1,2}) ([0-9]{1,2}:[0-9]{2} ?[AP]M) .+ ([0-9]{1,2}:[0-9]{2} ?[AP]M)')
+    self.dateTimeRE = re.compile('^([A-Z][a-z]+)\s+?([0-9]{1,2})\s+([0-9]{1,2}:[0-9]{2} ?[AP]M) .+ ([0-9]{1,2}:[0-9]{2} ?[AP]M)')
     self.cityRE = re.compile(location_regex)
     self.getDirectionsRE = re.compile('Get.*ns')
 
@@ -166,6 +166,9 @@ class pokeocr:
     lines[0] = '%s %s' % (known_month, remainder_of_string)
 
     match = self.dateTimeRE.match(lines[0])
+    # print("\033[32m==> Date: \033[0m%s" % lines[0])
+    # print(lines)
+
 
     if not match:
       # Let's try to work around some common problems
