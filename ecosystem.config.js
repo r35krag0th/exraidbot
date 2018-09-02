@@ -12,7 +12,8 @@ module.exports = {
       env: {
       },
       env_production : {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        TZ: 'America/Chicago'
       }
     },
   ],
