@@ -7,6 +7,7 @@ import sys
 import re
 import unicodedata
 import json
+import calendar
 from cv2utils import cv2utils
 
 class InvalidCityException(Exception):
@@ -27,9 +28,19 @@ class TooFewLinesException(Exception):
 class pokeocr:
   def __init__(self, location_regex):
     self.preferred_language = None
+    self.gym_name_corrections = {}
     with open('config/exraid.json', 'r') as fp:
       json_data = json.load(fp)
       self.preferred_language = json_data.get('preferred_language')
+
+      if 'gym_name_corrections' in json_data and isinstance(json_data['gym_name_corrections'], dict):
+        # Use a dictionary comprehension to flip the dictionary around.  The "correction_name" should be
+        # unique (when case sensitive).
+        self.gym_name_corrections = {
+          correction_name: actual_name 
+          for actual_name, correction_names in json_data['gym_name_corrections'].iteritems()
+          for correction_name in correction_names
+        }
 
     # Get the first available tool
     self.tool = pyocr.get_available_tools()[0]
@@ -43,6 +54,8 @@ class pokeocr:
     self.dateTimeRE = re.compile('^([A-Z][a-z]+) ?([0-9]{1,2}) ([0-9]{1,2}:[0-9]{2} ?[AP]M) .+ ([0-9]{1,2}:[0-9]{2} ?[AP]M)')
     self.cityRE = re.compile(location_regex)
     self.getDirectionsRE = re.compile('Get.*ns')
+
+    self.short_months_to_known_months = { calendar.month_name[a][:3]: calendar.month_name[a] for a in range(1,13) }
 
   @staticmethod
   def isMatchCentered(width, startx, endx):
@@ -128,6 +141,29 @@ class pokeocr:
     # pipes in this data, so let's just replace them.  We'll do this before
     # even trying a match because it's very low-risk
     lines[0] = lines[0].replace('|', 'l')
+    
+    # Sometimes dash shows up as emdash (unicode 2014)
+    lines[0] = lines[0].replace(u'\u2014', '-')
+
+    #
+    # Attempt to further shore up issues with Month recognition
+    #
+    # Get the first three of the month we've been given
+    first_three_letters = lines[0].split(' ')[0][:3]
+
+    # Select the known month
+    known_month = self.short_months_to_known_months[first_three_letters]
+
+    # Find the offset and slice the remainder of the string out
+    # gives "Z 1:00 PM - 1:45 PM" from "SeptemberZ 1:00 PM - 1:45 PM"
+    remainder_of_string = lines[0][len(known_month):]
+
+    # OCR tends to confused the following
+    # 2 -> Z
+    remainder_of_string = remainder_of_string.replace('Z', '2')
+
+    # Replace the string with sanitized goodies.
+    lines[0] = '%s %s' % (known_month, remainder_of_string)
 
     match = self.dateTimeRE.match(lines[0])
 
@@ -162,7 +198,11 @@ class pokeocr:
     else:
       raise InvalidDateTimeException('Date/time line did not match: ' + lines[0].encode('utf-8'))
 
-    ret.location = lines[1]
+    # If you have problematic OCR results for some gyms, we can maintain overrides here.
+    if lines[1] in self.gym_name_corrections:
+      ret.location = self.gym_name_corrections[lines[1]]
+    else:
+      ret.location = lines[1]
 
     gdindex = 3
     match = self.cityRE.match(lines[2])
