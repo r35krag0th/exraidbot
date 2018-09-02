@@ -6,6 +6,7 @@ import cv2
 import sys
 import re
 import unicodedata
+import json
 from cv2utils import cv2utils
 
 class InvalidCityException(Exception):
@@ -25,8 +26,20 @@ class TooFewLinesException(Exception):
 
 class pokeocr:
   def __init__(self, location_regex):
+    self.preferred_language = None
+    with open('config/exraid.json', 'r') as fp:
+      json_data = json.load(fp)
+      self.preferred_language.get('preferred_language')
+
+    # Get the first available tool
     self.tool = pyocr.get_available_tools()[0]
-    self.lang = self.tool.get_available_languages()[0]
+
+    available_languages = self.tool.get_available_languages()
+    if self.preferred_language is not None and self.preferred_language in available_languages:
+      self.lang = self.preferred_language
+    else:
+      self.lang = self.tool.get_available_languages()[0]
+
     self.dateTimeRE = re.compile('^([A-Z][a-z]+) ?([0-9]{1,2}) ([0-9]{1,2}:[0-9]{2} ?[AP]M) .+ ([0-9]{1,2}:[0-9]{2} ?[AP]M)')
     self.cityRE = re.compile(location_regex)
     self.getDirectionsRE = re.compile('Get.*ns')
