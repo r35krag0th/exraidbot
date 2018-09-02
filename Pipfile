@@ -16,3 +16,7 @@ fuzzywuzzy = "*"
 
 [requires]
 python_version = "2.7"
+
+[scripts]
+start = "python -m disco.cli --config config.json"
+dev = "python -m disco.cli --config config.dev.json"
