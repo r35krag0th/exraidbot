@@ -29,7 +29,7 @@ class pokeocr:
     self.preferred_language = None
     with open('config/exraid.json', 'r') as fp:
       json_data = json.load(fp)
-      json_data.get('preferred_language')
+      self.preferred_language = json_data.get('preferred_language')
 
     # Get the first available tool
     self.tool = pyocr.get_available_tools()[0]
