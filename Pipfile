@@ -11,6 +11,8 @@ python-dateutil = "*"
 pyocr = "*"
 disco-py = "*"
 fuzzywuzzy = "*"
+dateparser = "*"
+pytest = "*"
 
 [dev-packages]
 

@@ -48,5 +48,10 @@
     "users_in_channel_message": "Users in this channel:"
   },
   "top_left_image": "topleft.png",
-  "bottom_image": "bottom.png"
+  "bottom_image": "bottom.png",
+  "gym_name_corrections": {
+    "Fred B Lamb Trail": [
+      "Fred 8 Lamb Trail"
+    ]
+  }
 }
